@@ -2,6 +2,8 @@ import json
 import torch
 from transformers import AutoTokenizer, AutoModelForSequenceClassification
 import os
+
+# bitsandbytes 비활성화 (CPU 전용 실행)
 os.environ["TRANSFORMERS_NO_BITSANDBYTES"] = "1"  # bitsandbytes 비활성화
 
 class ResumeJobEvaluator:
@@ -9,6 +11,7 @@ class ResumeJobEvaluator:
         self.model_id = model_id
         self.hf_token = hf_token
         self.cpu_only = cpu_only
+        # 모델을 CPU로만 실행하도록 설정
         self.device = torch.device("cpu" if cpu_only or not torch.cuda.is_available() else "cuda")
         self.initialize()
 
@@ -74,7 +77,6 @@ class ResumeJobEvaluator:
 {resume_text}
 
 ### Evaluation:"""
-
             # 입력을 토큰화하여 모델에 전달
             inputs = self.tokenizer(prompt, return_tensors="pt", truncation=True, padding=True).to(self.device)
 
