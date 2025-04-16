@@ -1,8 +1,9 @@
 import json
-import os
 import torch
 from transformers import AutoTokenizer, AutoModelForSequenceClassification
-os.environ["TRANSFORMERS_NO_BITSANDBYTES"] = "1"
+import os
+os.environ["TRANSFORMERS_NO_BITSANDBYTES"] = "1"  # bitsandbytes 비활성화
+
 class ResumeJobEvaluator:
     def __init__(self, model_id: str, hf_token: str, cpu_only: bool = False):
         self.model_id = model_id
@@ -82,10 +83,13 @@ class ResumeJobEvaluator:
             logits = output.logits
             predictions = torch.argmax(logits, dim=-1)
             result = predictions.item()  # 예시: 분류 결과를 반환
+
+            # 메모리 정리
             del inputs
             del output
             if not self.cpu_only:
                 torch.cuda.empty_cache()
+
             return result
         except Exception as e:
             return f"Error: {str(e)}"
