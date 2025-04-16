@@ -1,3 +1,4 @@
+"unsloth[colab-new] @ git+https://github.com/unslothai/unsloth.git"
 torch
 transformers
 huggingface_hub
@@ -6,5 +7,3 @@ argparse
 pydantic
 transformers
 runpod
-bitsandbytes
-peft

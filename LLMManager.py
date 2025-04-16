@@ -78,12 +78,13 @@ class ResumeJobEvaluator:
 
             # 모델 실행 및 결과 반환
             output = self.model(**inputs)
-            result = output
+            logits = output.logits
+            predictions = torch.argmax(logits, dim=-1)
+            result = predictions.item()  # 예시: 분류 결과를 반환
             del inputs
             del output
             if not self.cpu_only:
                 torch.cuda.empty_cache()
-
             return result
         except Exception as e:
             return f"Error: {str(e)}"
