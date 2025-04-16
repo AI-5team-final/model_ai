@@ -1,0 +1,8 @@
+torch
+transformers
+huggingface_hub
+fastapi
+argparse
+pydantic
+transformers
+runpod
