@@ -1,7 +1,8 @@
 import json
+import os
 import torch
 from transformers import AutoTokenizer, AutoModelForSequenceClassification
-
+os.environ["TRANSFORMERS_NO_BITSANDBYTES"] = "1"
 class ResumeJobEvaluator:
     def __init__(self, model_id: str, hf_token: str, cpu_only: bool = False):
         self.model_id = model_id

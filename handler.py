@@ -1,7 +1,7 @@
 import os
 import runpod
 from LLMManager import ResumeJobEvaluator
-
+os.environ["TRANSFORMERS_NO_BITSANDBYTES"] = "1"
 # 환경 변수에서 설정값 로드
 # 어디가 문제?
 HF_TOKEN = os.getenv("HF_TOKEN")
