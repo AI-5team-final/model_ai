@@ -23,13 +23,13 @@ class ResumeJobEvaluator:
             quantization_config = BitsAndBytesConfig(load_in_4bit=True, bnb_4bit_compute_dtype=torch.float16)
 
             # Seq2Seq 모델을 로드 (텍스트 생성용)
-            self.model = AutoModelForSeq2SeqLM.from_pretrained(
+            self.model = AutoModelForCausalLM.from_pretrained(
                 self.model_id,
                 quantization_config=quantization_config
             ).to(self.device)  # CPU 또는 GPU로 로드
         else:
             # `bitsandbytes` 비활성화된 경우 CPU 전용으로 로드
-            self.model = AutoModelForSeq2SeqLM.from_pretrained(self.model_id).to(self.device)
+            self.model = AutoModelForCausalLM.from_pretrained(self.model_id).to(self.device)
         print("[INFO] Model and tokenizer loaded.")
 
     def invoke(self, resume_text: str, job_description: str) -> str:
