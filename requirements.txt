@@ -6,3 +6,5 @@ argparse
 pydantic
 transformers
 runpod
+bitsandbytes
+peft
