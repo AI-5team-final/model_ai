@@ -7,32 +7,34 @@ from accelerate import Accelerator
 os.environ["TRANSFORMERS_NO_BITSANDBYTES"] = "1"  # `bitsandbytes` 비활성화 (GPU 최적화 필요 없을 때)
 
 class ResumeJobEvaluator:
-    def __init__(self, model_id: str, hf_token: str, cpu_only: bool = False):
+   def __init__(self, model_id: str, hf_token: str, cpu_only: bool = False):
         self.model_id = model_id
         self.hf_token = hf_token
         self.cpu_only = cpu_only
-        # 모델을 CPU로만 실행하도록 설정
         self.device = torch.device("cpu" if cpu_only or not torch.cuda.is_available() else "cuda")
         self.accelerator = Accelerator()  # Accelerator 객체 초기화
         self.initialize()
 
     def initialize(self):
-        # 모델과 토크나이저 초기화
+        print("[INFO] Initializing model and tokenizer...")
+
+        # 토크나이저 초기화
         self.tokenizer = AutoTokenizer.from_pretrained(self.model_id)
 
         # 양자화된 모델을 4비트로 로드할 때 `bitsandbytes`가 필요하다면 이를 활성화
-        # `bitsandbytes` 사용 시 C 컴파일러가 필요하지 않도록 환경 설정
         if not os.environ.get("TRANSFORMERS_NO_BITSANDBYTES") == "1":
             from transformers import BitsAndBytesConfig
             quantization_config = BitsAndBytesConfig(load_in_4bit=True, bnb_4bit_compute_dtype=torch.float16)
 
-            self.model = AutoModelForSequenceClassification.from_pretrained(
+            # Seq2Seq 모델을 로드 (텍스트 생성용)
+            self.model = AutoModelForSeq2SeqLM.from_pretrained(
                 self.model_id,
                 quantization_config=quantization_config
             ).to(self.device)  # CPU 또는 GPU로 로드
         else:
             # `bitsandbytes` 비활성화된 경우 CPU 전용으로 로드
-            self.model = AutoModelForSequenceClassification.from_pretrained(self.model_id).to(self.device)
+            self.model = AutoModelForSeq2SeqLM.from_pretrained(self.model_id).to(self.device)
+        print("[INFO] Model and tokenizer loaded.")
 
     def invoke(self, resume_text: str, job_description: str) -> str:
         try:
@@ -95,15 +97,11 @@ class ResumeJobEvaluator:
             inputs = self.tokenizer(prompt, return_tensors="pt", truncation=True, padding=True).to(self.device)
 
             # 모델 실행 및 결과 반환
-            output = self.model(**inputs)
-            print(output)
-            logits = output.logits
-            print(logits)
-            predictions = torch.argmax(logits, dim=-1)
-            print(predictions)
-            result = predictions.item()  # 예시: 분류 결과를 반환
-            print(result)
-            # 메모리 정리
+            output = self.model.generate(**inputs)
+
+            result = self.tokenizer.decode(output[0], skip_special_tokens=True)
+
+            # 메모리 삭제
             del inputs
             del output
             if not self.cpu_only:
