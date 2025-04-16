@@ -96,10 +96,13 @@ class ResumeJobEvaluator:
 
             # 모델 실행 및 결과 반환
             output = self.model(**inputs)
+            print(output)
             logits = output.logits
+            print(logits)
             predictions = torch.argmax(logits, dim=-1)
+            print(predictions)
             result = predictions.item()  # 예시: 분류 결과를 반환
-
+            print(result)
             # 메모리 정리
             del inputs
             del output
