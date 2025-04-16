@@ -1,24 +1,20 @@
 import json
 import torch
-from transformers import AutoTokenizer, AutoModelForSequenceClassification
+from transformers import AutoTokenizer, AutoModelForSeq2SeqLM
 import os
-from accelerate import Accelerator
+
 # `bitsandbytes` 비활성화 (필요 없다면)
 os.environ["TRANSFORMERS_NO_BITSANDBYTES"] = "1"  # `bitsandbytes` 비활성화 (GPU 최적화 필요 없을 때)
 
 class ResumeJobEvaluator:
-   def __init__(self, model_id: str, hf_token: str, cpu_only: bool = False):
+    def __init__(self, model_id: str, hf_token: str, cpu_only: bool = False):
         self.model_id = model_id
         self.hf_token = hf_token
         self.cpu_only = cpu_only
         self.device = torch.device("cpu" if cpu_only or not torch.cuda.is_available() else "cuda")
-        self.accelerator = Accelerator()  # Accelerator 객체 초기화
         self.initialize()
 
     def initialize(self):
-        print("[INFO] Initializing model and tokenizer...")
-
-        # 토크나이저 초기화
         self.tokenizer = AutoTokenizer.from_pretrained(self.model_id)
 
         # 양자화된 모델을 4비트로 로드할 때 `bitsandbytes`가 필요하다면 이를 활성화
