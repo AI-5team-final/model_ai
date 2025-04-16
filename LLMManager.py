@@ -11,10 +11,15 @@ class ResumeJobEvaluator:
         self.model_id = model_id
         self.hf_token = hf_token
         self.cpu_only = cpu_only
-        self.device = torch.device("cpu" if cpu_only or not torch.cuda.is_available() else "cuda")
+
+        # GPU 사용 여부 결정
+        self.device = torch.device("cuda" if not cpu_only and torch.cuda.is_available() else "cpu")  # GPU 사용
         self.initialize()
 
     def initialize(self):
+        print("[INFO] Initializing model and tokenizer...")
+
+        # 토크나이저 초기화
         self.tokenizer = AutoTokenizer.from_pretrained(self.model_id)
 
         # 양자화된 모델을 4비트로 로드할 때 `bitsandbytes`가 필요하다면 이를 활성화
@@ -22,14 +27,15 @@ class ResumeJobEvaluator:
             from transformers import BitsAndBytesConfig
             quantization_config = BitsAndBytesConfig(load_in_4bit=True, bnb_4bit_compute_dtype=torch.float16)
 
-            # Seq2Seq 모델을 로드 (텍스트 생성용)
+            # CausalLM 모델을 로드 (언어 모델링용)
             self.model = AutoModelForCausalLM.from_pretrained(
                 self.model_id,
                 quantization_config=quantization_config
-            ).to(self.device)  # CPU 또는 GPU로 로드
+            ).to(self.device)  # GPU로 로드
         else:
-            # `bitsandbytes` 비활성화된 경우 CPU 전용으로 로드
+            # `bitsandbytes` 비활성화된 경우 CPU 또는 GPU 전용으로 로드
             self.model = AutoModelForCausalLM.from_pretrained(self.model_id).to(self.device)
+        
         print("[INFO] Model and tokenizer loaded.")
 
     def invoke(self, resume_text: str, job_description: str) -> str:
