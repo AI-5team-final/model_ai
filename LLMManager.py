@@ -1,6 +1,6 @@
 import json
 import torch
-from transformers import AutoTokenizer, AutoModelForSeq2SeqLM
+from transformers import AutoTokenizer, AutoModelForCausalLM
 import os
 
 # `bitsandbytes` 비활성화 (필요 없다면)
