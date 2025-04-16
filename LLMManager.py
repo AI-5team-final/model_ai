@@ -2,7 +2,7 @@ import json
 import torch
 from transformers import AutoTokenizer, AutoModelForSequenceClassification
 import os
-
+from accelerate import Accelerator
 # `bitsandbytes` 비활성화 (필요 없다면)
 os.environ["TRANSFORMERS_NO_BITSANDBYTES"] = "1"  # `bitsandbytes` 비활성화 (GPU 최적화 필요 없을 때)
 
@@ -13,6 +13,7 @@ class ResumeJobEvaluator:
         self.cpu_only = cpu_only
         # 모델을 CPU로만 실행하도록 설정
         self.device = torch.device("cpu" if cpu_only or not torch.cuda.is_available() else "cuda")
+        self.accelerator = Accelerator()  # Accelerator 객체 초기화
         self.initialize()
 
     def initialize(self):
