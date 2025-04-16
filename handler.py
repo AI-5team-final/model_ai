@@ -21,10 +21,12 @@ def handler(job):
         job_text = input_data["jobpost"]
         print(f"Resume Text: {resume_text}")
         print(f"Job Text: {job_text}")
+        
         # 서비스 레벨에서 모델에 요청을 보내 평가 결과 받기
         evaluator = ResumeJobEvaluator(model_id=MODEL_ID, hf_token=HF_TOKEN)
         result = evaluator.invoke(resume_text, job_text)
         print(f"Evaluation Result: {result}")
+        
         # 결과를 응답으로 반환
         return {"result": result}
 

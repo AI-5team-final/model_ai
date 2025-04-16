@@ -3,8 +3,8 @@ import torch
 from transformers import AutoTokenizer, AutoModelForSequenceClassification
 import os
 
-# bitsandbytes 비활성화 (CPU 전용 실행)
-os.environ["TRANSFORMERS_NO_BITSANDBYTES"] = "1"  # bitsandbytes 비활성화
+# `bitsandbytes` 비활성화 (필요 없다면)
+os.environ["TRANSFORMERS_NO_BITSANDBYTES"] = "1"  # `bitsandbytes` 비활성화 (GPU 최적화 필요 없을 때)
 
 class ResumeJobEvaluator:
     def __init__(self, model_id: str, hf_token: str, cpu_only: bool = False):
@@ -18,7 +18,20 @@ class ResumeJobEvaluator:
     def initialize(self):
         # 모델과 토크나이저 초기화
         self.tokenizer = AutoTokenizer.from_pretrained(self.model_id)
-        self.model = AutoModelForSequenceClassification.from_pretrained(self.model_id).to(self.device)
+
+        # 양자화된 모델을 4비트로 로드할 때 `bitsandbytes`가 필요하다면 이를 활성화
+        # `bitsandbytes` 사용 시 C 컴파일러가 필요하지 않도록 환경 설정
+        if not os.environ.get("TRANSFORMERS_NO_BITSANDBYTES") == "1":
+            from transformers import BitsAndBytesConfig
+            quantization_config = BitsAndBytesConfig(load_in_4bit=True, bnb_4bit_compute_dtype=torch.float16)
+
+            self.model = AutoModelForSequenceClassification.from_pretrained(
+                self.model_id,
+                quantization_config=quantization_config
+            ).to(self.device)  # CPU 또는 GPU로 로드
+        else:
+            # `bitsandbytes` 비활성화된 경우 CPU 전용으로 로드
+            self.model = AutoModelForSequenceClassification.from_pretrained(self.model_id).to(self.device)
 
     def invoke(self, resume_text: str, job_description: str) -> str:
         try:
