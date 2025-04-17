@@ -22,7 +22,6 @@ def handler(job):
         print(f"Resume Text: {resume_text}")
         print(f"Job Text: {job_text}")
         
-        # 서비스 레벨에서 모델에 요청을 보내 평가 결과 받기
         evaluator = ResumeJobEvaluator(model_id=MODEL_ID, hf_token=HF_TOKEN)
         result = evaluator.invoke(resume_text, job_text)
         print(f"Evaluation Result: {result}")
@@ -33,5 +32,4 @@ def handler(job):
     except Exception as e:
         return {"error": str(e)}
 
-# 서버리스 핸들러 시작
 runpod.serverless.start({"handler": handler})
