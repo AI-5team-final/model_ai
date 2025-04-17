@@ -5,7 +5,7 @@ os.environ["TRANSFORMERS_NO_BITSANDBYTES"] = "1"
 # 환경 변수에서 설정값 로드
 # 어디가 문제?
 HF_TOKEN = os.getenv("HF_TOKEN")
-MODEL_ID = os.getenv("MODEL_ID", "ninky0/rezoom-llama3.1-8b-4bit-b16-merged")
+MODEL_ID = os.getenv("MODEL_ID", "ninky0/rezoom-llama3.1-8b-4bit-b16-r64-merged")
 CPU_ONLY = os.getenv("CPU_ONLY", "False").lower() == "true"
 print("HF_TOKEN:", HF_TOKEN)
 print("MODEL_ID:", MODEL_ID)
