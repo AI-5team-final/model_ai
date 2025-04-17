@@ -97,29 +97,30 @@ class ResumeJobEvaluator:
 
 ### Evaluation:"""
             # 입력을 토큰화하여 모델에 전달
-        inputs = self.tokenizer(prompt, return_tensors="pt").to(self.device)
+            inputs = self.tokenizer(prompt, return_tensors="pt").to(self.device)
 
-        streamer = TextIteratorStreamer(self.tokenizer, skip_special_tokens=True)
-        generation_kwargs = dict(
-            **inputs,
-            streamer=streamer,
-            max_new_tokens=512,
-            do_sample=True,
-            temperature=0.7,
-            top_k=50,
-        )
+            streamer = TextIteratorStreamer(self.tokenizer, skip_special_tokens=True)
+            generation_kwargs = dict(
+                **inputs,
+                streamer=streamer,
+                max_new_tokens=512,
+                do_sample=True,
+                temperature=0.7,
+                top_k=50,
+            )
 
-        thread = Thread(target=self.model.generate, kwargs=generation_kwargs)
-        thread.start()
+            thread = Thread(target=self.model.generate, kwargs=generation_kwargs)
+            thread.start()
 
-        result = ""
-        for new_text in streamer:
-            result += new_text
+            result = ""
+            for new_text in streamer:
+                result += new_text
 
-        del inputs
-        if not self.cpu_only:
-            torch.cuda.empty_cache()
-        return result
+            del inputs
+            if not self.cpu_only:
+                torch.cuda.empty_cache()
 
-    except Exception as e:
-        return f"Error: {str(e)}"
+            return result
+
+        except Exception as e:
+            return f"Error: {str(e)}"
