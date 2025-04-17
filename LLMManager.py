@@ -1,6 +1,6 @@
 import json
 import torch
-from transformers import AutoTokenizer, AutoModelForCausalLM
+from transformers import AutoTokenizer, AutoModelForCausalLM, TextIteratorStreamer
 import os
 from threading import Thread
 
