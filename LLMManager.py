@@ -2,6 +2,7 @@ import json
 import torch
 from transformers import AutoTokenizer, AutoModelForCausalLM
 import os
+from threading import Thread
 
 # `bitsandbytes` 비활성화 (필요 없다면)
 os.environ["TRANSFORMERS_NO_BITSANDBYTES"] = "1"  # `bitsandbytes` 비활성화 (GPU 최적화 필요 없을 때)
@@ -96,19 +97,34 @@ class ResumeJobEvaluator:
 
 ### Evaluation:"""
             # 입력을 토큰화하여 모델에 전달
-            inputs = self.tokenizer(prompt, return_tensors="pt", truncation=True, padding=True).to(self.device)
+        inputs = self.tokenizer(prompt, return_tensors="pt").to(self.device)
 
-            # 모델 실행 및 결과 반환
-            output = self.model.generate(**inputs)
+        # 스트리머 준비
+        streamer = TextIteratorStreamer(self.tokenizer, skip_special_tokens=True)
 
-            result = self.tokenizer.decode(output[0], skip_special_tokens=True)
+        generation_kwargs = dict(
+            **inputs,
+            streamer=streamer,
+            max_new_tokens=512,         # 필요한 만큼만
+            do_sample=True,             # 샘플링 (속도 느려지면 False도 고려)
+            temperature=0.7,            # 창의성 조절
+            top_k=50,                   # 생성 품질 향상
+        )
 
-            # 메모리 삭제
-            del inputs
-            del output
-            if not self.cpu_only:
-                torch.cuda.empty_cache()
+        # 백그라운드로 generate 수행
+        thread = Thread(target=self.model.generate, kwargs=generation_kwargs)
+        thread.start()
 
-            return result
+        # 스트리밍 결과 수집
+        result = ""
+        for new_text in streamer:
+            result += new_text
+
+        # 메모리 클리어
+        del inputs
+        if not self.cpu_only:
+            torch.cuda.empty_cache()
+
+        return result
         except Exception as e:
             return f"Error: {str(e)}"
