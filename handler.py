@@ -1,9 +1,9 @@
 import os
+os.environ["TRANSFORMERS_NO_BITSANDBYTES"] = "1"
 import runpod
 from LLMManager import ResumeJobEvaluator
-os.environ["TRANSFORMERS_NO_BITSANDBYTES"] = "1"
-# 환경 변수에서 설정값 로드
-# 어디가 문제?
+
+
 HF_TOKEN = os.getenv("HF_TOKEN")
 MODEL_ID = os.getenv("MODEL_ID", "ninky0/rezoom-llama3.1-8b-4bit-b16-r64-merged")
 CPU_ONLY = os.getenv("CPU_ONLY", "False").lower() == "true"
@@ -22,8 +22,7 @@ def handler(job):
         print(f"Resume Text: {resume_text}")
         print(f"Job Text: {job_text}")
         
-        evaluator = ResumeJobEvaluator(model_id=MODEL_ID, hf_token=HF_TOKEN)
-        result = evaluator.invoke(resume_text, job_text)
+        result = manager.invoke(resume_text, job_text)
         print(f"Evaluation Result: {result}")
         
         # 결과를 응답으로 반환
